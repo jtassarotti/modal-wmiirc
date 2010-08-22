@@ -3,6 +3,7 @@
 
 # Configuration Variables
 MODKEY=Mod4
+SMODKEY=$MODKEY-
 UP=k
 DOWN=j
 LEFT=h
@@ -11,9 +12,14 @@ RIGHT=l
 # Colors tuples: "<text> <background> <border>"
 WMII_NORMCOLORS='#888888 #222222 #333333'
 WMII_FOCUSCOLORS='#ffffff #285577 #4c7899'
-
+WMII_CMDMODE='#FF6633'
 WMII_BACKGROUND='#333333'
 WMII_FONT='fixed'
+
+WMII_DNORMCOLORS='#888888 #222222 #333333'
+WMII_DFOCUSCOLORS='#ffffff #285577 #4c7899'
+WMII_CMDFOCUSCOLORS='#ff7700 #111111 #ff7700'
+WMII_CMDNORMCOLORS='#000000 #ff7700 #666666'
 
 set -- $(echo $WMII_NORMCOLORS $WMII_FOCUSCOLORS)
 WMII_MENU="dmenu -b -fn '$WMII_FONT' -nf '$1' -nb '$2' -sf '$4' -sb '$5'"
@@ -22,7 +28,7 @@ WMII_TERM="x-terminal-emulator"
 
 # Column Rules
 wmiir write /colrules <<!
-/.*/ -> 58+42
+/.*/ -> 50+50
 !
 
 # Tagging Rules
@@ -99,61 +105,61 @@ eventstuff() {
 			menulast=${do:-"$menulast"}
 		esac
 	# Key Bindings
-	Key $MODKEY-Control-t
+	Key SMODKEYControl-t
 		case $(wmiir read /keys | wc -l | tr -d ' \t\n') in
 		0|1)
 			echo -n $Keys | tr ' ' '\012' | wmiir write /keys
 			wmiir xwrite /ctl grabmod $MODKEY;;
 		*)
-			wmiir xwrite /keys $MODKEY-Control-t
+			wmiir xwrite /keys SMODKEYControl-t
 			wmiir xwrite /ctl grabmod Mod3;;
 		esac
-	Key $MODKEY-space
+	Key SMODKEYspace
 		wmiir xwrite /tag/sel/ctl select toggle
-	Key $MODKEY-d
+	Key SMODKEYd
 		wmiir xwrite /tag/sel/ctl colmode sel default
-	Key $MODKEY-s
+	Key SMODKEYs
 		wmiir xwrite /tag/sel/ctl colmode sel stack
-	Key $MODKEY-m
+	Key SMODKEYm
 		wmiir xwrite /tag/sel/ctl colmode sel max
-	Key $MODKEY-a
+	Key SMODKEYa
 		Action $(actionlist | eval $WMII_MENU) &
-	Key $MODKEY-p
+	Key SMODKEYp
 		sh -c "$(eval $WMII_MENU <$progsfile)" &
-	Key $MODKEY-t
+	Key SMODKEYt
 		wmiir xwrite /ctl "view $(tagsmenu)" &
 	Key $MODKEY-Return
 		eval $WMII_TERM &
-	Key $MODKEY-Shift-space
+	Key SMODKEYShift-space
 		wmiir xwrite /tag/sel/ctl send sel toggle
-	Key $MODKEY-f
+	Key SMODKEYf
 		wmiir xwrite /client/sel/ctl Fullscreen toggle
-	Key $MODKEY-Shift-c
+	Key SMODKEYShift-c
 		wmiir xwrite /client/sel/ctl kill
-	Key $MODKEY-Shift-t
+	Key SMODKEYShift-t
 		wmiir xwrite "/client/$(wmiir read /client/sel/ctl)/tags" "$(tagsmenu)" &
-	Key $MODKEY-$LEFT
+	Key SMODKEY$LEFT
 		wmiir xwrite /tag/sel/ctl select left
-	Key $MODKEY-$RIGHT
+	Key SMODKEY$RIGHT
 		wmiir xwrite /tag/sel/ctl select right
-	Key $MODKEY-$DOWN
+	Key SMODKEY$DOWN
 		wmiir xwrite /tag/sel/ctl select down
-	Key $MODKEY-$UP
+	Key SMODKEY$UP
 		wmiir xwrite /tag/sel/ctl select up
-	Key $MODKEY-Shift-$LEFT
+	Key SMODKEYShift-$LEFT
 		wmiir xwrite /tag/sel/ctl send sel left
-	Key $MODKEY-Shift-$RIGHT
+	Key SMODKEYShift-$RIGHT
 		wmiir xwrite /tag/sel/ctl send sel right
-	Key $MODKEY-Shift-$DOWN
+	Key SMODKEYShift-$DOWN
 		wmiir xwrite /tag/sel/ctl send sel down
-	Key $MODKEY-Shift-$UP
+	Key SMODKEYShift-$UP
 		wmiir xwrite /tag/sel/ctl send sel up
 !
 	for i in 0 1 2 3 4 5 6 7 8 9; do
 		cat <<!
-	Key $MODKEY-$i
+	Key SMODKEY$i
 		wmiir xwrite /ctl view "$i"
-	Key $MODKEY-Shift-$i
+	Key SMODKEYShift-$i
 		wmiir xwrite /client/sel/tags "$i"
 !
 	done
@@ -169,12 +175,40 @@ border 1
 EOF
 
 export WMII_MENU WMII_9MENU WMII_FONT WMII_TERM
-export WMII_FOCUSCOLORS WMII_SELCOLORS WMII_NORMCOLORS
-
+export WMII_FOCUSCOLORS WMII_SELCOLORS WMII_NORMCOLORS WMII_CMDNORMCOLORS
 # Feed events to `wmiiloop' for processing
-eval "$(eventstuff | sed 's/^[	]//' | { . wmiiloop; })"
+eval "$(eventstuff | sed 's/SMODKEY/$MODKEY-/g' |  sed 's/^[	]//' | { . wmiiloop; })"
+echo "$(eventstuff | sed 's/SMODKEY/$MODKEY-/g' |  sed 's/^[	]//' | { . wmiiloop; })"
+Keys1="$Keys Menu"
+Keys=""
+echo "$Keys1" | tr ' ' '\n' | wmiir write /keys
 
-echo "$Keys" | tr ' ' '\n' | wmiir write /keys
+eval "$(eventstuff | sed 's/SMODKEY//g' |  sed 's/^[	]//' | { . wmiiloop; })"
+echo "$(eventstuff | sed 's/SMODKEY//g' |  sed 's/^[	]//' | { . wmiiloop; })"
+Keys2="$Keys1 $Keys Menu a b c d e f g h i j k l m n o p q r s t u v w x y z / ; ' [ ] ( ) - + = Mod4"
+echo "$Keys2" | tr ' ' '\n' | wmiir write /keys
+MODE=0
+Key_Menu() {
+
+if [ $MODE = "1" ]; then
+	MODE=0
+	echo "indeed... should change colors::"
+	echo "$Keys2" | tr ' ' '\n' | wmiir write /keys
+	echo "$WMII_CMDNORMCOLORS" | wmiir create /rbar/status
+	#echo "$WMII_FOCUSCOLORS" | wmiir create /rbar/status
+else
+	MODE=1
+	echo "$Keys1" | tr ' ' '\n' | wmiir write /keys
+	echo "$WMII_NORMCOLORS" | wmiir create /rbar/status
+fi
+echo $MODE
+}
+
+
+Key_i() {
+	echo "$Keys1" | tr ' ' '\n' | wmiir write /keys
+	echo "$WMII_NORMCOLORS" | wmiir create /rbar/status
+}
 
 # Functions
 Action() {
